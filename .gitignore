@@ -1,0 +1,14 @@
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+
+*.out
+*.exe
+ex1
+ex2
+ex3
+
+build/
+dist/
