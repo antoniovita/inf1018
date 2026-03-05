@@ -1,0 +1,60 @@
+1) a) Crie um arquivo C contendo as funções dump e main, compile-o e execute o programa. Explique o resultado desse programa (qual o tamanho, em bytes, de um inteiro? como esses bytes estão ordenados na memória?). Experimente, se necessário, outros valores para i.
+R: O tamanho de um inteiro em bytes é 4 e os valores estão ordenados em little-endian, o que quer dizer que o byte menos significativo do número vem primeiro na memória.
+
+b) Aplique a mesma técnica para ver como um long é armazenado.
+R: O tamanho de um long em bytes é 8 e os valores estão ordenados em little-endian, o que quer dizer que o byte menos significativo do número vem primeiro na memória.
+
+c) Aplique a mesma técnica para ver como um short é armazenado.
+R: O tamanho de um short em bytes é 2 e os valores estão ordenados em little-endian, o que quer dizer que o byte menos significativo do número vem primeiro na memória.
+
+d) Aplique a mesma técnica para ver como um char é armazenado. Lembre-se que uma variável do tipo char armazena um valor inteiro. Experimente atribuir a essa variável tanto um caractere como o valor do código ASCII correspondente (por exemplo, 'a' e 97).
+R: O tamanho de um char em bytes é 1.
+
+2) a) Procure entender como funciona a função string2num. O que está acontecendo? O que será o valor de (*s - '0') a cada iteração? E o valor de a? 
+R: A função string2num percorre a string caractere por caractere e, usando a tabela ASCII (em que os dígitos são consecutivos, como 0 igual a 48, 1 igual a 49 até 9 igual a 57), transforma cada caractere em seu valor numérico subtraindo o valor do caractere zero, obtendo assim um dígito de 0 a 9. Em cada iteração, ela atualiza um acumulador, deslocando o valor anterior uma casa decimal e somando o novo dígito, de modo que o acumulador vai assumindo os valores parciais do número, como 1, depois 12, depois 123, e assim por diante.
+
+b) Modifique a função string2num do exercício anterior para converter strings contendo numerais escritos em qualquer base entre 2 e 10. A base em que o numeral está escrito deverá ser dada como um segundo parâmetro (do tipo int) para a função.
+
+int string2num(const char *s, int base) {
+  int a = 0;
+  if (base < 2 || base > 10) return 0;
+
+  for (; *s && *s != '\n'; s++) {
+    if (*s < '0' || *s > '9') return 0;
+    int num = *s - '0';
+    if (num >= base) return 0;
+    a = a * base + num;
+  }
+  return a;
+}
+
+R:  printf("%d\n", string2num("777", 8)); => saída = 511
+    printf("%d\n", string2num("777", 10)); => saída = 777
+
+c) Modifique novamente a função string2num para aceitar bases maiores que 10. Nesse caso, precisamos de "dígitos" para os valores a partir de 10. Use as letras a-z para isso, com a representando o "dígito" 10 e assim por diante, até z representando o "dígito" 35. (Qual a maior base que podemos usar com esse esquema?)
+
+int string2num(const char *s, int base) {
+  int a = 0;
+
+  for (; *s && *s != '\n'; s++) {
+    unsigned char uc = (unsigned char)*s;
+    int num;
+
+    if (isdigit(uc)) {
+      num = uc - '0';
+    } else if (isalpha(uc)) {
+      num = tolower(uc) - 'a' + 10;
+    } else {
+      return 0;
+    }
+
+    if (num >= base) return 0;
+    a = a * base + num;
+  }
+
+  return a;
+}
+
+R:  printf("%d\n", string2num("1a", 16)); => saída = 26
+    printf("%d\n", string2num("a09b", 16)); => saída = 41115
+    printf("%d\n", string2num("z09b", 36)); => saída = 1633295

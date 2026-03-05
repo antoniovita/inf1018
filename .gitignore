@@ -1,3 +1,5 @@
+*.vscode
+*.dSYM
 *.o
 *.a
 *.so
@@ -9,6 +11,8 @@
 ex1
 ex2
 ex3
+lab2
 
 build/
 dist/
+vscode/
