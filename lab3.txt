@@ -1,0 +1,62 @@
+1) Considere uma variavel C, de nome x, do tipo unsigned int. Escreva expressões que, utilizando operações de manipulação de bits, obtenham os seguintes valores:
+um valor de 32 bits com o byte menos significativo igual ao byte correspondente de x e todos os outros bits iguais a 0;
+um valor de 32 bits com o byte mais significativo com todos os bits iguais a '1' e os outros bytes com o mesmo valor dos bytes correspondentes de x.
+Como exemplo, se o valor de x for 0x87654321, o resultado da avaliação da primeira expressão deverá ser 0x00000021 e o da segunda deverá ser 0xFF654321
+
+Complete o programa abaixo com as suas expressões, compile-o e o execute para verificar se elas estão corretas:
+
+R: int main(void) {
+  unsigned int x = 0x87654321;
+  unsigned int y, z;
+
+  y = x & 0x000000FF;
+  z = x | 0xFF000000;
+
+  printf("%08x %08x\n", y, z);
+}
+
+
+2) Escreva uma função que verifique se o número de bits '1' de um inteiro sem sinal é ímpar:
+Sua função deve retornar 0 se o número de bits '1' for par, e um valor diferente de 0 se o número de bits '1' for ímpar.
+Atenção: sua função NÃO PODE usar o operador % para testar se um número é par ou ímpar!
+Teste sua função odd_ones com diferentes valores de entrada, não esquecendo de verificar se os resultados obtidos estão corretos! Por exemplo, teste os valores 0x01010101 (número par de bits 1) e 0x01030101 (número ímpar de bits 1):
+
+R: int odd_ones(unsigned int x) {
+  int count = 0;
+
+  while (x) {
+    count += x & 1;
+    x >>= 1;
+  }
+
+  return count & 1;
+}
+
+3) Algoritmos de criptografia usam tipicamente diversas operações de manipulação de bits. Algumas dessas operações não são oferecidas diretamente por C, mas podem ser implementadas a partir de suas operações básicas (and, or, shift).
+
+Implemente em C a operação switch_byte, que troca as duas "metades" de um byte. Por exemplo, se sua função receber como parâmetro o valor 0xAB ela deverá retornar 0xBA. O protótipo de sua função deverá ser
+unsigned char switch_byte(unsigned char x);
+Escreva uma função main e teste sua função switch_byte.
+
+Implemente agora a operação rotate_left (também chamada de "circular left shift").
+unsigned char rotate_left(unsigned char x, int n);
+Assim como um "left shift" (<<), ela desloca seu operando "n" bits para a esquerda. Porém, ao invés de preencher as posições livres à direita com zeros, ela as preenche com os "n" bits removidos pelo deslocamento.
+Considere, por exemplo, o valor 0x61 (0110 0001).
+
+um "rotate left" de 1 bit resulta no valor 0xc2 (1100 0010)
+um "rotate left" de 2 bits resulta no valor 0x85 (1000 0101)
+um "rotate left" de 7 bits resulta no valor 0xb0 (1011 0000)
+Incorpore à sua função main testes para a função rotate_left, experimentando alguns valores diferentes para o deslocamento.
+
+Obs: você pode assumir que o valor do deslocamento será sempre um valor inteiro maior que 0 e menor que 8.
+
+a) R: unsigned char switch_byte(unsigned char x) {
+  return (x >> 4) | (x << 4);
+}
+
+b) R: unsigned char rotate_left(unsigned char x, int n) {
+    return (x << n) | (x >> (8 - n));
+}
+
+A função rotate_left desloca os bits de x n posições para a esquerda e os bits que saem pela esquerda voltam pela direita. 
+O operador OR combina dois valores comparando cada bit, se pelo menos um dos bits for 1, o resultado é 1.
