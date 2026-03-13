@@ -1,0 +1,111 @@
+1) O programa realiza a impressão dos bytes e seus endereços de memória. A função dump percorre a memória de uma variável, imprimindo o endereço de cada byte e o valor em formato hexadecimal. Cada byte é acessado por meio de um ponteiro unsigned char*, que avança de byte a byte. O valor em hexadecimal é impresso utilizando o especificador %02x, que converte o valor decimal do byte para hexadecimal. O endereço de cada byte é exibido com %p, mostrando sua localização na memória, enquanto a conversão de decimal para hexadecimal ocorre automaticamente durante a impressão, representando o valor do byte na base 16. Sendo assim, a saída esperada será:
+
+char tem 1 byte
+como o 150 > 127 que é o limite do char, esse número será entendido como -106, pois:
+1001 0110 -> inverte-se: 0110 1001 -> soma-se 1: 0110 1010 = 106, portanto -106
+1001 = 9 e 0110 = 6, portanto 96 em hexadecimal
+R: 96
+
+short tem 2 bytes
+0000 0000 0000 0011 - 3 em binário
+1111 1111 1111 1100 - inverte-se
+1111 1111 1111 1101 - soma-se 1
+1111 = f em hexadecimal | 1101 = 13 em decimal e d em hexadecimal
+R: ff fd
+
+
+int tem 4 bytes
+0000 0000 0000 0000 0000 0000 1001 0111 - 151 em binário
+1111 1111 1111 1111 1111 1111 0110 1000 - inverte-se
+1111 1111 1111 1111 1111 1111 0110 1001 - soma-se 1
+1111 = f em hexadecimal | 0110 = 6 em hexadecimal | 1001 = 9 em hexadecimal
+R: ff ff ff 69
+
+Portanto:
+
+dump de c: 
+0xAlgumEndereco - 96
+
+dump de s: 
+0xAlgumEndereco - fd
+0xAlgumEndereco - ff
+
+dump de i: 
+0xAlgumEndereco - 69
+0xAlgumEndereco - ff
+0xAlgumEndereco - ff
+0xAlgumEndereco - ff
+
+2) Assim como na primeira, o programa utiliza a função dump para mostrar o valor em hexadecimal e o endereço de cada byte da variável. Sendo assim, a saída esperada será:
+
+short tem 2 bytes, portanto seu range vai de -32768 até 32767
+0111 1111 1111 1101 - em binário
+1000 0000 0000 0010 - inverte-se
+1000 0000 0000 0011 - soma-se 1
+1000 = 8 | 0000 = 0 | 0011 = 4
+R: 80 03
+
+unsigned short tem 2 bytes, portanto seu range vai de 0 até 65535
+1000 0000 0000 0011 - em binário
+1000 = 8 | 0011 = 3 | 0000 = 0
+R: 80 03
+
+
+l=-32765 k=32771 
+
+dump de l:
+0xAlgumEndereco - 03
+0xAlgumEndereco - 80
+
+dump de k:
+0xAlgumEndereco - 03
+0xAlgumEndereco - 80
+
+
+3) Primeiro deslocamos a palavra word para a direita em 8 * bytenum bits, trazendo o byte desejado para a posição menos significativa. Em seguida, deslocamos esse valor 24 bits para a esquerda, colocando o bit de sinal do byte na posição mais significativa de um inteiro de 32 bits. Por fim, deslocamos 24 bits para a direita novamente. Como esse deslocamento é aritmético, por se tratar do tipo int, o bit de sinal é replicado, realizando a extensão de sinal e produzindo o valor correto do byte como inteiro com sinal.
+int xbyte(packed_t word, int bytenum) {
+    int byte = (int) word >> (bytenum * 8) & 0xff;
+    return (byte << 24) >> 24;
+}
+
+4) Os resultados mudam porque o C interpreta e converte os valores de forma diferente dependendo de os tipos serem com sinal (signed) ou sem sinal (unsigned), e isso afeta diretamente a comparação. No Programa 1, como tudo envolve int sem especificar unsigned, os valores são tratados como signed int. Assim, o padrão de bits 0xffffffff corresponde a -1 em complemento a 2 e, como -1 é menor que 2, a expressão 0xffffffff < 2 resulta verdadeira. No Programa 2, como as variáveis são unsigned int, não existe bit de sinal e os valores são sempre interpretados como não negativos. Dessa forma, 0xffffffff passa a representar 4294967295 (em 32 bits), que é maior do que 2, e por isso a comparação indica que 0xffffffff > 2. Já no Programa 3, embora x seja int e seja impresso como -1, a comparação envolve um unsigned int (y), e pelas conversões usuais do C o operando com sinal é convertido para unsigned antes da comparação; assim, -1 é convertido para 4294967295 (em 32 bits), fazendo a expressão equivalente a 4294967295 < 2, que é falsa. Além disso, nos Programas 2 e 3 a saída pode causar confusão porque foi usado %d para imprimir uma variável unsigned int, quando o correto seria %u.
+
+5) Valor em signed char (8 bits)
+sc = -1 | em 8 bits, -1 é representado com todos os bits 1:
+sc = 1111 1111
+
+Quando ele passa pela conversão de tipo, primeiro há o aumento de tamanho para 32 bits (como sc tem sinal, faz extensão de sinal)
+extensão de sinal copia o bit mais significativo, que aqui é 1, para os bits novos:
+11111111  ->  11111111 11111111 11111111 11111111  (0xFFFFFFFF)
+
+Interpretação como unsigned int (32 bits)
+Os bits não mudam, só muda a interpretação:
+11111111 11111111 11111111 11111111 = 2^32 - 1 = 4294967295
+
+Então ui fica com representação interna 0xFFFFFFFF.
+
+Código para teste:
+
+#include <stdio.h>
+void dump_ui(unsigned int x) {
+  unsigned char *p = (unsigned char*)&x;
+  size_t i = 0;
+
+  printf("ui como unsigned: %u\n", x);
+  printf("ui em hex: 0x%08X\n", x);
+  printf("bytes: ");
+  while (i < sizeof(x)) {
+    printf("%02X ", p[i]);
+    i++;
+  }
+  printf("\n");
+}
+
+int main(void) {
+  signed char sc = -1;
+  unsigned int ui = sc;
+
+  printf("sc como int: %d\n", (int)sc);
+  dump_ui(ui);
+  return 0;
+}
