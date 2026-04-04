@@ -13,7 +13,7 @@ Este projeto pode ser compilado em um container Ubuntu com `gcc`, sem instalar c
 
 ```bash
 docker pull ubuntu
-docker run -it --rm -v "$(pwd):/app" -w /app ubuntu bash
+docker run --rm -it --platform=linux/amd64 -v "$PWD":/app -w /app gcc:13 bash
 apt update
 apt install gcc -y
 ```

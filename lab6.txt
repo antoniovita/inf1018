@@ -1,0 +1,206 @@
+1) int nums[] = {10, -21, -30, 45}  ->  seção .data
+   - nums: .int 10, -21, -30, 45 define os 4 inteiros inicializados do array nums
+
+   printf("%d\n", ...)  ->  ainda em .data (string de formato)
+   - Sf: .string "%d\n" reserva os bytes da string "%d\n\0" e o rótulo Sf é o label que guarda o endereço passado para printf
+
+   int main() { ... }  ->  início da seção .text
+   - .text muda para a seção de código do Assembly
+   - .globl main exporta o símbolo para o linker
+   - main: marca o começo da função
+
+   for (i = 0, p = nums; ...)  ->  inicialização do loop
+   - movl $0,%ebx corresponde a i = 0 (o registrador %ebx está sendo usado como i).
+   - leaq nums(%rip),%r12 (ou movq $nums,%r12 no Linux antigo) corresponde a p = nums (ou seja, p = &nums[0]).
+
+   Condição i != 4  ->  teste e desvio
+   - cmpl $4,%ebx + je L2 implementa: “se i == 4, sai do loop” (equivalente a parar quando i != 4 fica falso).
+
+   Corpo printf("%d\n", *p);  ->  leitura do array + chamada
+   - movl (%r12),%eax lê *p (pega o nums[i] atual).
+   - prepara argumentos e faz call printf/call _printf (isso é o que efetivamente imprime).
+
+   Incrementos i++, p++  ->  atualização do estado do loop
+   - addl $1,%ebx corresponde a i++.
+   - addq $4,%r12 corresponde a p++ (soma 4 porque sizeof(int) == 4).
+   - jmp L1 volta para o teste do loop.
+
+2) R: Foi adicionado um acumulador da soma em %r10 e, dentro do loop, foi feito addl (%r12), %r10 para somar cada elemento.  
+Foi removido o `printf` de dentro do loop e passou a ser impresso só uma vez no final usando `%esi = %r10`.
+
+.data
+nums:  .int  10, -21, -30, 45
+Sf:  .string "%d\n"    # string de formato para printf
+
+.text
+.globl  main
+main:
+
+/********************************************************/
+/* mantenha este trecho aqui e nao mexa - prologo !!!   */
+  pushq   %rbp
+  movq    %rsp, %rbp
+  subq    $16, %rsp
+  movq    %rbx, -8(%rbp)
+  movq    %r12, -16(%rbp)
+/********************************************************/
+
+  movl  $0, %ebx  /* ebx = 0; */
+  movq  $nums, %r12  /* r12 = &nums */
+  movl  $0, %r10
+
+L1:
+  cmpl  $4, %ebx  /* if (ebx == 4) ? */
+  je  L2          /* goto L2 */
+
+  movl  (%r12), %eax    /* eax = *r12 */
+
+/*************************************************************/
+/* este trecho imprime o valor de %eax (estraga %eax)  */
+  movq    $Sf, %rdi    /* primeiro parametro (ponteiro)*/
+  movl    %eax, %esi   /* segundo parametro  (inteiro) */
+  call  printf       /* chama a funcao da biblioteca */
+/*************************************************************/
+
+  
+  addl (%r12), %r10
+  addl  $1, %ebx  /* ebx += 1; */
+  addq  $4, %r12  /* r12 += 4; */
+  jmp  L1         /* goto L1; */
+
+L2:  
+  movq    $Sf, %rdi    /* primeiro parametro (ponteiro)*/
+  movl    %r10, %esi   /* segundo parametro  (inteiro) */
+  call  printf       /* chama a funcao da biblioteca */
+  
+/***************************************************************/
+/* mantenha este trecho aqui e nao mexa - finalizacao!!!!      */
+  movq  $0, %rax  /* rax = 0  (valor de retorno) */
+  movq  -8(%rbp), %rbx
+  movq  -16(%rbp), %r12
+  leave
+  ret      
+/***************************************************************/
+
+3) R: Foi adicionada uma verificação de paridade antes do printf fazendo movl (%r12), %eax e tentando testar o bit menos significativo com andl $1, (%eax), desviando para L2 para pular a impressão quando o valor fosse ímpar.
+Foi condicionado o bloco do printf para executar somente quando o teste indicasse número par, mantendo o incremento de i em %ebx e de p em %r12 (4 em 4).
+
+/*
+int nums[] = {10, -21, -30, 45};
+int main() {
+  int i, *p;
+  for (i = 0, p = nums; i != 4; i++, p++)
+    printf("%d\n", *p);
+  return 0;
+}
+*/
+
+.data
+nums:  .int  10, -21, -30, 45
+Sf:  .string "%d\n"    # string de formato para printf
+
+.text
+.globl  main
+main:
+
+/********************************************************/
+/* mantenha este trecho aqui e nao mexa - prologo !!!   */
+  pushq   %rbp
+  movq    %rsp, %rbp
+  subq    $16, %rsp
+  movq    %rbx, -8(%rbp)
+  movq    %r12, -16(%rbp)
+/********************************************************/
+
+  movl  $0, %ebx  /* ebx = 0; */
+  movq  $nums, %r12  /* r12 = &nums */
+
+L1:
+  cmpl  $4, %ebx  /* if (ebx == 4) ? */
+  je  L3          /* goto L2 */
+
+  movl  (%r12), %eax    /* eax = *r12 */
+  andl  $1, (%eax)
+  je  L2
+
+/*************************************************************/
+/* este trecho imprime o valor de %eax (estraga %eax)  */
+  movq    $Sf, %rdi    /* primeiro parametro (ponteiro)*/
+  movl    %eax, %esi   /* segundo parametro  (inteiro) */
+  call  printf       /* chama a funcao da biblioteca */
+/*************************************************************/
+
+L2:
+  addl  $1, %ebx  /* ebx += 1; */
+  addq  $4, %r12  /* r12 += 4; */
+  jmp  L1         /* goto L1; */
+
+L3:
+/***************************************************************/
+/* mantenha este trecho aqui e nao mexa - finalizacao!!!!      */
+  movq  $0, %rax  /* rax = 0  (valor de retorno) */
+  movq  -8(%rbp), %rbx
+  movq  -16(%rbp), %r12
+  leave
+  ret      
+/***************************************************************/
+
+4) R: Foi trocada a declaração do array para nums: .byte 10, -21, -30, 45.
+Foi alterada a leitura para estender o byte para 32 bits antes de imprimir (movsbl (%r12), %eax), o argumento do printf passou a ser movl %eax, %esi, e o ponteiro em %r12 passou a ser incrementado de 1 em 1 (addq $1, %r12).
+
+/*
+int nums[] = {10, -21, -30, 45};
+int main() {
+  int i, *p;
+  for (i = 0, p = nums; i != 4; i++, p++)
+    printf("%d\n", *p);
+  return 0;
+}
+*/
+
+.data
+nums:	.byte	10, -21, -30, 45
+Sf:  .string "%d\n"    # string de formato para printf
+
+.text
+.globl  main
+main:
+
+/********************************************************/
+/* mantenha este trecho aqui e nao mexa - prologo !!!   */
+  pushq   %rbp
+  movq    %rsp, %rbp
+  subq    $16, %rsp
+  movq    %rbx, -8(%rbp)
+  movq    %r12, -16(%rbp)
+/********************************************************/
+
+  movl  $0, %ebx  /* ebx = 0; */
+  movq  $nums, %r12  /* r12 = &nums */
+
+L1:
+  cmpl  $4, %ebx  /* if (ebx == 4) ? */
+  je  L2          /* goto L2 */
+
+  movsbl  (%r12), %eax    /* eax = (int32_t)(signed char)(*r12) */
+
+/*************************************************************/
+/* este trecho imprime o valor de %eax (estraga %eax)  */
+  movq    $Sf, %rdi    /* primeiro parametro (ponteiro)*/
+  movl    %eax, %esi   /* segundo parametro  (inteiro) */
+  call  printf       /* chama a funcao da biblioteca */
+/*************************************************************/
+
+  addl  $1, %ebx  /* ebx += 1; */
+  addq  $1, %r12  /* r12 += 1; */
+  jmp  L1         /* goto L1; */
+
+L2:
+/***************************************************************/
+/* mantenha este trecho aqui e nao mexa - finalizacao!!!!      */
+  movq  $0, %rax  /* rax = 0  (valor de retorno) */
+  movq  -8(%rbp), %rbx
+  movq  -16(%rbp), %r12
+  leave
+  ret      
+/***************************************************************/

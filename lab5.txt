@@ -1,0 +1,13 @@
+1)R: b[2] tem 8 bytes e a[2][3] tem 12 bytes eles ficam guardados em sequência na memória e no caso da matriz a, a ordem é por linhas a[0][0] a[0][1] a[0][2] a[1][0] a[1][1] a[1][2]
+
+2)R: no struct X ficam 2 bytes de preenchimento, no caso o "buraco", entre o short e o último int para alinhar o int em 4 bytes esses 2 bytes podem aparecer como 00 no dump.
+
+3)R:
+- X1 tamanho 12 porque começa com 1 byte do char e entra 3 bytes de preenchimento para o int começar alinhado em 4 depois do int sobra mais 3 bytes no final para o total fechar em múltiplo de 4
+- X2 tamanho 16 porque o long usa 8 bytes e o char usa 1 byte e sobra 7 bytes de preenchimento no final para fechar em múltiplo de 8
+- X3 tamanho 8 porque o int usa 4 bytes depois vêm 2 char que somam 2 bytes e sobra 2 bytes de preenchimento no final para fechar em múltiplo de 4
+- X4 tamanho 24 porque o X2 dentro dele ocupa 16 bytes depois tem 1 char e sobra 7 bytes de preenchimento no final para fechar em múltiplo de 8
+- X5 tamanho 3 porque são 3 char seguidos e não precisa preencher no final
+- X6 tamanho 16 porque o short inicial usa 2 bytes e entra 2 bytes de preenchimento para o int começar alinhado em 4 depois o int usa 4 bytes depois o vetor de 3 char usa 3 bytes e entra 1 byte de preenchimento para o último short ficar alinhado em 2 e no final ainda sobra 2 bytes para fechar em múltiplo de 4
+- U1 tamanho 8 porque o maior campo é o char[5] mas a union precisa ter tamanho que respeite alinhamento de 4 então completa para 8
+- U2 tamanho 6 porque o maior campo é o char[5] e o alinhamento é de 2 então completa para 6
