@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/antoniovitafonseca/dev/inf1018/lab2'
+relocations:     []
+...

@@ -1,0 +1,114 @@
+1) Codifique a função novonum abaixo em assembly.
+
+int novonum(void) {
+  int minhalocal;
+  printf("numero: ");
+  scanf("%d",&minhalocal);
+  return minhalocal;
+}
+
+Teste sua função com a main mostrada abaixo:
+#include <stdio.h>
+int novonum(void);
+
+int main (void) {
+  printf ("%d\n", novonum());
+  return 0;
+}
+
+R: 
+
+.section .rodata
+str_prompt: .string "numero: "
+str_fmt:    .string "%d"
+
+.text
+.globl novonum
+novonum:
+    pushq   %rbp
+    movq    %rsp, %rbp
+    subq    $16, %rsp
+
+    movq    $str_prompt, %rdi
+    movl    $0, %eax
+    call    printf
+
+    movq    $str_fmt, %rdi
+    leaq    -4(%rbp), %rsi
+    movl    $0, %eax
+    call    scanf
+
+    movl    -4(%rbp), %eax
+    leave
+    ret
+
+    
+2) Crie um arquivo ex2.c com o código abaixo, compile-o e o execute, verificando seu resultado.
+
+#include <stdio.h>
+int addl (int a[], int n) {
+  int i;
+  int s = 0;
+  for (i=0; i<n; i++)
+    s += a[i];
+  return s;
+}
+
+int bemboba (int num) {
+  int local[4];
+  int *a;
+  int i;
+
+  for (i=0,a=local;i<4;i++) {
+    *a = num;
+    a++;
+  }
+  return addl (local, 4);
+}
+
+int main (void) {
+  printf ("%d\n", bemboba (5));
+  return 0;
+}
+
+
+Traduza agora a função bemboba para assembly, criando um arquivo bemboba.s.
+Lembre-se que você não precisa alocar na pilha todas as variáveis locais, apenas as que não podem ser alocadas em registradores...
+
+Substitua em ex2.c a função bemboba por seu protótipo, e crie um novo executável ex2, que reune os dois módulos:
+
+gcc -Wall -o ex2 ex2.c bemboba.s
+Teste o seu novo programa, comparando seu resultado com o obtido anteriormente.
+
+
+R:
+
+.text
+.globl bemboba
+bemboba:
+    pushq   %rbp
+    movq    %rsp, %rbp  
+    subq    $16,  %rsp  # int local[4]
+
+    movl    $0, %ecx    # i = 0
+    leaq    -16(%rbp), %rdx    # a = local
+
+    .L1:
+        cmpl    $4,   %ecx
+        jge     .L2
+        movl    %edi, (%rdx)
+        addq    $4,    %rdx
+        addl    $1, %ecx
+        jmp     .L1
+
+    .L2:
+        movl    $0, %eax
+        leaq    -16(%rbp), %rdi
+        movl    $4, %esi
+        call    addl
+        leave
+        ret
+
+
+
+    

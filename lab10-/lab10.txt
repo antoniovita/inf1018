@@ -1,0 +1,134 @@
+1)
+struct X {
+  int val;
+  struct X *next;
+};
+
+int add (struct X *x) {
+  int a = 0;
+  for (; x != NULL; x = x->next)
+    a += x->val;
+  return a;
+}
+
+.text
+.globl add
+add:
+    movl $0, %eax
+
+.loop:
+    cmpq $0 , %rdi
+    je .end
+
+    addl 0(%rdi), %eax
+    addl 8(%rdi), %eax
+
+    jmp .loop
+
+.end:
+    ret
+
+--------------------------------
+2) 
+int add2 (struct X *x) {
+  if (x == NULL) return 0;
+  else return x->val + add2(x->next);
+}
+
+.text
+.globl add2
+add2:
+    cmpq $0, %rdi
+    je .L1
+
+    movl 0(%rdi), %eax
+    pushq %rax
+
+    movq 8(%rdi), %rdi
+    call add2
+
+    popq %rcx
+    addl %ecx, %eax
+    ret
+
+.L1:
+    movl $0, %eax
+    ret
+
+--------------------------------
+3)
+struct X {
+  int val1;
+  int val2;
+};
+
+int f(int i, int v);
+
+void boo (struct X *px, int n, int val) {
+  while (n--) {
+    px->val2 = f(px->val1, val);
+    px++;
+  }
+}
+
+.text
+.globl boo
+boo:
+.top:
+    cmpl $0, %esi
+    je .end
+    decl %esi
+
+    movl 0(%rdi), %edi
+    movl %edx, %esi
+    call f
+    movl %eax, 4(%rdi)
+
+    addq $8, %rdi
+    jmp .top
+.end:
+    ret
+
+
+--------------------------------
+
+4)
+
+int f(int x);
+
+void map2 (int* um, int * outro, int n) {
+  int i;
+  for (i=0; i<n; i++)
+    *(outro+i) = f(*(um+i));
+}
+
+.text
+.globl map2
+map2:
+    pushq %rbx
+    pushq %r12
+    pushq %r13
+
+    movq %rdi, %r12        # r12 = um
+    movq %rsi, %r13        # r13 = outro
+    movl %edx, %ebx        # ebx = n
+
+    xorl %ecx, %ecx        # i = 0
+.Ltop:
+    cmpl %ebx, %ecx        # i >= n ?
+    jge  .Lend
+
+    movl (%r12,%rcx,4), %edi   # edi = um[i]
+    call f                      # eax = f(um[i])
+    movl %eax, (%r13,%rcx,4)    # outro[i] = eax
+
+    incl %ecx               # i++
+    jmp  .Ltop
+
+.Lend:
+    popq %r13
+    popq %r12
+    popq %rbx
+    ret
+
+

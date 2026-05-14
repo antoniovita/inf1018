@@ -1,0 +1,65 @@
+1)
+add:
+    movl  %edi, %eax
+    addl  %esi, %eax
+    addl  %edx, %eax
+    ret
+
+2)
+.text
+.globl fat
+.type fat, @function
+fat:
+    cmpl $0, %edi
+    je L1
+
+    pushq %rdi
+    subl $1, %edi
+    call fat
+    popq %rcx
+    imull %ecx, %eax
+    ret
+
+L1:
+    movl $1, %eax
+    ret
+
+3)
+.text
+.globl foo
+.type foo, @function
+foo:
+    pushq %r13
+    pushq %r12
+
+    movl $0, %r10d
+    movl $0, %r11d
+
+L1:
+    cmpl %esi, %r10d
+    jge  FIM
+
+    movl %r10d, %eax            
+    imull $4, %eax              
+
+    movq %rdi, %r13             
+    addq %rax, %r13
+
+    movl (%r13), %r12d
+    addl %r12d, %r11d
+
+    cmpl $0, %r12d
+    jne  L3
+
+L2:
+    movl %r11d, (%r13)
+    movl $0, %r11d
+
+L3:
+    addl $1, %r10d
+    jmp  L1
+
+FIM:
+    popq %r12
+    popq %r13
+    ret
