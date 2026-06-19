@@ -1,0 +1,43 @@
+1)
+
+int foo (int x) {
+  return x+1;
+}
+
+.text
+.globl foo
+foo:
+    movl %edi, %eax
+    addl $1, %eax
+    ret
+
+--------
+
+2)
+
+typedef int (*funcp) (int x);
+
+int main (void) {
+    unsigned char codigo[] = foo(2);
+    funcp f = (funcp)codigo;
+    i = (*f)(10);
+}
+
+
+3) Escreva agora um programa em C como descrito a seguir. Declare um array de bytes (unsigned char codigo[]) como uma variável local de sua main, preenchido com o código de máquina visto no item anterior. Lembre-se que a saída do objdump mostra os códigos das instruções em hexadecimal. Use esses valores para preencher o array.
+Seu programa deve converter o endereço do array para um endereço de função. Para isso, declare o tipo "ponteiro para uma função que recebe um int e retorna um int", conforme abaixo:
+
+typedef int (*funcp) (int x);
+
+Na sua função main atribua o endereço do array a uma variável desse tipo:
+funcp f = (funcp)codigo;
+
+O ponteiro f armazena agora o endereço da função, ou seja, o endereço inicial do código da função, armazenado na memória. Você pode então usar f para chamar essa função como se fosse uma função C, fazendo, por exemplo:
+i = (*f)(10);
+
+Faça isso no seu programa, imprimindo a seguir o valor da variável i para poder verificar se o seu código de máquina foi realmente executado.
+Deve ser necessário compilar seu programa com
+
+gcc -Wall -Wa,--execstack -o seuprograma seuprograma.c
+
+para permitir a execução do seu código de máquina (sem a opção -Wa,--execstack, o sistema operacional abortará o seu programa, por tentar executar um código armazenado na área de dados). Execute o programa resultante e verifique a sua saída.
