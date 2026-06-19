@@ -1,0 +1,32 @@
+Integrantes do grupo:
+  Antonio Vita Fonseca  - 2510071 - 3WC
+  David Faerman         - 2510179 - 3WC
+
+RELATORIO DE TESTES - TRABALHO GERADOR DINAMICO DE FUNCAO INF1018
+
+O QUE ESTA FUNCIONANDO
+
+Todos os casos do enunciado foram implementados e testados com sucesso:
+FIX, IND e PARAM, com INT_PAR e PTR_PAR, em funcoes de 1 a 3 parametros,
+incluindo combinacoes mistas dos tres tipos no mesmo vetor.
+
+EXEMPLOS DE TESTES
+
+Teste 1: FIX(INT)+FIX(INT)      soma(3,7)          [OK] => 10
+Teste 2: PARAM+FIX(INT)         soma(x,100)        [OK] => 105, 97
+Teste 3: FIX(INT)+PARAM         soma(42,x)         [OK] => 50, 42
+Teste 4: PARAM+PARAM            soma(x,y)          [OK] => 5, 0, 30
+Teste 5: IND(INT)+FIX(INT)      soma(*p,1)         [OK] => 100, 1
+Teste 6: FIX(PTR)               escreve_ptr(&val)  [OK] => 777
+Teste 7: IND(PTR)               escreve_ptr(**pp)  [OK] => 555
+Teste 8: PARAM unico            identidade(x)      [OK] => 42, -1, 0
+Teste 9: FIX(INT)x3             soma3(1,2,3)       [OK] => 6
+Teste 10: PARAMx3               soma3(x,y,z)       [OK] => 6, 60
+Teste 11: FIX+PARAM+IND(INT)    soma3(10,x,*p)     [OK] => 18, 17
+Teste 12: FIX(INT)+FIX(INT)     mul(6,7)           [OK] => 42
+
+Total: 21 verificacoes, todas aprovadas.
+
+O QUE NAO ESTA FUNCIONANDO
+
+Nao foram identificados casos com falha.
